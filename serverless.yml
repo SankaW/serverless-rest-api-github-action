@@ -6,11 +6,12 @@ provider:
   runtime: nodejs20.x
   profile: perpion-sanka
   region: us-east-1
+  stage: ${opt:stage, 'dev'}
 
 functions:
   createNote:
-    handler: handler.hello
+    handler: handler.createNote
     events:
       - http:
-          method: get
-          path: hello
+          method: post
+          path: notes
