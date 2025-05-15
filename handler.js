@@ -6,3 +6,11 @@ module.exports.createNote = async (event) => {
     body: JSON.stringify("A new note is created"),
   };
 };
+
+module.exports.updateNote = async (event) => {
+  const noteId = event.pathParameters.id;
+  return {
+    statusCode: 200,
+    body: JSON.stringify(`The note with id ${noteId} is updated`),
+  };
+};
