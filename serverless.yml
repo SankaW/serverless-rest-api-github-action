@@ -7,17 +7,9 @@ provider:
   profile: perpion-sanka
   region: us-east-1
   stage: ${opt:stage, 'dev'}
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Resource: !GetAtt notesTable.Arn
-          Action:
-            - dynamodb:PutItem
-            # - dynamodb:GetItem
-            # - dynamodb:Scan
-            # - dynamodb:UpdateItem
-            # - dynamodb:DeleteItem
+
+plugins:
+  - serverless-iam-roles-per-function
 
 functions:
   createNote:
@@ -26,6 +18,11 @@ functions:
       - http:
           method: post
           path: notes
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt notesTable.Arn
 
   updateNote:
     handler: handler.updateNote
@@ -33,6 +30,11 @@ functions:
       - http:
           method: put
           path: notes/{id}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: !GetAtt notesTable.Arn
 
   deleteNote:
     handler: handler.deleteNote

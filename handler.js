@@ -2,7 +2,11 @@
 const crypto = require("crypto");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const client = new DynamoDBClient({ region: "us-east-1" });
-const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
+const {
+  DynamoDBDocumentClient,
+  PutCommand,
+  UpdateCommand,
+} = require("@aws-sdk/lib-dynamodb");
 const docClient = DynamoDBDocumentClient.from(client);
 
 module.exports.createNote = async (event) => {
@@ -32,7 +36,29 @@ module.exports.createNote = async (event) => {
 };
 
 module.exports.updateNote = async (event) => {
+  let data = JSON.parse(event.body);
   const noteId = event.pathParameters.id;
+  try {
+    await docClient.send(
+      new UpdateCommand({
+        TableName: "notes",
+        Key: {
+          notesId: noteId,
+        },
+        ConditionExpression: "attribute_exists(notesId)",
+        UpdateExpression: "set title = :t, body = :b",
+        ExpressionAttributeValues: {
+          ":t": data.title,
+          ":b": data.body,
+        },
+      })
+    );
+  } catch (error) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify(error.message),
+    };
+  }
   return {
     statusCode: 200,
     body: JSON.stringify(`The note with id ${noteId} is updated`),
