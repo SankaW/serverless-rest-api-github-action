@@ -1,0 +1,16 @@
+service: notes-crud-api
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  profile: perpion-sanka
+  region: us-east-1
+
+functions:
+  createNote:
+    handler: handler.hello
+    events:
+      - http:
+          method: get
+          path: hello
