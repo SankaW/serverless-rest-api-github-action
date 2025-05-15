@@ -7,6 +7,17 @@ provider:
   profile: perpion-sanka
   region: us-east-1
   stage: ${opt:stage, 'dev'}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Resource: !GetAtt notesTable.Arn
+          Action:
+            - dynamodb:PutItem
+            # - dynamodb:GetItem
+            # - dynamodb:Scan
+            # - dynamodb:UpdateItem
+            # - dynamodb:DeleteItem
 
 functions:
   createNote:
