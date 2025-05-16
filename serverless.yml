@@ -7,6 +7,8 @@ provider:
   profile: perpion-sanka
   region: us-east-1
   stage: ${opt:stage, 'dev'}
+  environment:
+    NOTES_TABLE_NAME: !Ref notesTable
 
 plugins:
   - serverless-iam-roles-per-function
@@ -42,6 +44,11 @@ functions:
       - http:
           method: delete
           path: notes/{id}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: !GetAtt notesTable.Arn
 
   getAllNotes:
     handler: handler.getAllNotes

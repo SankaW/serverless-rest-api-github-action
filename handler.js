@@ -6,15 +6,17 @@ const {
   DynamoDBDocumentClient,
   PutCommand,
   UpdateCommand,
+  DeleteCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const docClient = DynamoDBDocumentClient.from(client);
+const TABLE_NAME = process.env.NOTES_TABLE_NAME;
 
 module.exports.createNote = async (event) => {
   let data = JSON.parse(event.body);
   try {
     await docClient.send(
       new PutCommand({
-        TableName: "notes",
+        TableName: TABLE_NAME,
         Item: {
           notesId: crypto.randomUUID(),
           title: data.title,
@@ -41,7 +43,7 @@ module.exports.updateNote = async (event) => {
   try {
     await docClient.send(
       new UpdateCommand({
-        TableName: "notes",
+        TableName: TABLE_NAME,
         Key: {
           notesId: noteId,
         },
@@ -67,10 +69,26 @@ module.exports.updateNote = async (event) => {
 
 module.exports.deleteNote = async (event) => {
   const noteId = event.pathParameters.id;
-  return {
-    statusCode: 200,
-    body: JSON.stringify(`The note with id ${noteId} is deleted`),
-  };
+  try {
+    await docClient.send(
+      new DeleteCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          notesId: noteId,
+        },
+        ConditionExpression: "attribute_exists(notesId)",
+      })
+    );
+    return {
+      statusCode: 200,
+      body: JSON.stringify(`The note with id ${noteId} is deleted`),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify(error.message),
+    };
+  }
 };
 
 module.exports.getAllNotes = async (event) => {
