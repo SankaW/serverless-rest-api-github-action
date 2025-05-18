@@ -7,6 +7,8 @@ const {
   PutCommand,
   UpdateCommand,
   DeleteCommand,
+  GetCommand,
+  ScanCommand,
 } = require("@aws-sdk/lib-dynamodb");
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.NOTES_TABLE_NAME;
@@ -91,17 +93,51 @@ module.exports.deleteNote = async (event) => {
   }
 };
 
-module.exports.getAllNotes = async (event) => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify("All notes are returned"),
-  };
-};
-
 module.exports.getNoteById = async (event) => {
   const noteId = event.pathParameters.id;
-  return {
-    statusCode: 200,
-    body: JSON.stringify(`The note with id ${noteId} is returned`),
-  };
+  try {
+    const data = await docClient.send(
+      new GetCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          notesId: noteId,
+        },
+        ConditionExpression: "attribute_exists(notesId)",
+      })
+    );
+    if (!data.Item) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify(`The note with id ${noteId} is not found`),
+      };
+    }
+    return {
+      statusCode: 200,
+      body: JSON.stringify(data.Item),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify(error.message),
+    };
+  }
+};
+
+module.exports.getAllNotes = async (event) => {
+  try {
+    let params = {
+      TableName: TABLE_NAME,
+    };
+    const data = await docClient.send(new ScanCommand(params));
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ Items: data.Items }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify(error.message),
+    };
+  }
 };

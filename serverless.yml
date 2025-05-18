@@ -50,19 +50,27 @@ functions:
           - dynamodb:DeleteItem
         Resource: !GetAtt notesTable.Arn
 
-  getAllNotes:
-    handler: handler.getAllNotes
-    events:
-      - http:
-          method: get
-          path: notes
-
   getNoteById:
     handler: handler.getNoteById
     events:
       - http:
           method: get
           path: notes/{id}
+    iamRoleStatements:
+      - Effect: "Allow"
+        Resource: !GetAtt notesTable.Arn
+        Action: "dynamodb:GetItem"
+
+  getAllNotes:
+    handler: handler.getAllNotes
+    events:
+      - http:
+          method: get
+          path: notes/
+    iamRoleStatements:
+      - Effect: "Allow"
+        Resource: !GetAtt notesTable.Arn
+        Action: "dynamodb:Scan"
 
 resources:
   Resources:
