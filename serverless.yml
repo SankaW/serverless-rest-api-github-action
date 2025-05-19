@@ -7,18 +7,18 @@ provider:
   profile: perpion-sanka
   region: us-east-1
   stage: ${opt:stage, 'dev'}
-  apiGateway:
-    apiKeys:
-      - name: api-key-${self:provider.stage}
-        value: super-secret-api-key-${self:provider.stage}
-    usagePlan:
-      quota:
-        limit: 100
-        offset: 0
-        period: DAY
-      throttle:
-        burstLimit: 10
-        rateLimit: 100
+  # apiGateway:
+  #   apiKeys:
+  #     - name: api-key-${self:provider.stage}
+  #       value: super-secret-api-key-${self:provider.stage}
+  #   usagePlan:
+  #     quota:
+  #       limit: 100
+  #       offset: 0
+  #       period: DAY
+  #     throttle:
+  #       burstLimit: 10
+  #       rateLimit: 100
   environment:
     NOTES_TABLE_NAME: !Ref notesTable
 
@@ -26,12 +26,16 @@ plugins:
   - serverless-iam-roles-per-function
 
 functions:
+  authorizer:
+    handler: authorizer.handler
+
   createNote:
     handler: handler.createNote
     events:
       - http:
           method: post
           path: notes
+          authorizer: authorizer
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -44,6 +48,7 @@ functions:
       - http:
           method: put
           path: notes/{id}
+          authorizer: authorizer
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -56,6 +61,7 @@ functions:
       - http:
           method: delete
           path: notes/{id}
+          authorizer: authorizer
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -68,6 +74,7 @@ functions:
       - http:
           method: get
           path: notes/{id}
+          authorizer: authorizer
     iamRoleStatements:
       - Effect: "Allow"
         Resource: !GetAtt notesTable.Arn
@@ -79,7 +86,8 @@ functions:
       - http:
           method: get
           path: notes/
-          private: true
+          #private: true
+          authorizer: authorizer
     iamRoleStatements:
       - Effect: "Allow"
         Resource: !GetAtt notesTable.Arn
