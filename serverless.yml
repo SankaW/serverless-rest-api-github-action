@@ -7,6 +7,18 @@ provider:
   profile: perpion-sanka
   region: us-east-1
   stage: ${opt:stage, 'dev'}
+  apiGateway:
+    apiKeys:
+      - name: api-key-${self:provider.stage}
+        value: super-secret-api-key-${self:provider.stage}
+    usagePlan:
+      quota:
+        limit: 100
+        offset: 0
+        period: DAY
+      throttle:
+        burstLimit: 10
+        rateLimit: 100
   environment:
     NOTES_TABLE_NAME: !Ref notesTable
 
@@ -67,11 +79,13 @@ functions:
       - http:
           method: get
           path: notes/
+          private: true
     iamRoleStatements:
       - Effect: "Allow"
         Resource: !GetAtt notesTable.Arn
         Action: "dynamodb:Scan"
 
+# CloudFormation resources
 resources:
   Resources:
     notesTable:

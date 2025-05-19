@@ -127,12 +127,25 @@ module.exports.getAllNotes = async (event) => {
   try {
     let params = {
       TableName: TABLE_NAME,
+      Limit: 2,
     };
-    const data = await docClient.send(new ScanCommand(params));
+
+    let lastEvaluatedKey = undefined;
+    let allItems = [];
+
+    do {
+      if (lastEvaluatedKey) {
+        params.ExclusiveStartKey = lastEvaluatedKey;
+      }
+      const data = await docClient.send(new ScanCommand(params));
+      lastEvaluatedKey = data.LastEvaluatedKey;
+      console.log(`Items retrived: ${data.Items.length}`);
+      allItems = allItems.concat(data.Items);
+    } while (lastEvaluatedKey);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ Items: data.Items }),
+      body: JSON.stringify({ Items: allItems }),
     };
   } catch (error) {
     return {
