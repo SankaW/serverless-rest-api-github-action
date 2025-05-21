@@ -1,3 +1,11 @@
+const { CognitoJwtVerifier } = require("aws-jwt-verify");
+
+const jwtVerifier = CognitoJwtVerifier.create({
+  userPoolId: "us-east-1_8U2KNApFS",
+  tokenUse: "id",
+  clientId: "2g2ds1dak4m2mmog75poj8hcbt",
+});
+
 const generatePolicy = (principleId, effect, resource) => {
   var authResponse = {};
 
@@ -23,20 +31,32 @@ const generatePolicy = (principleId, effect, resource) => {
   return authResponse;
 };
 
-exports.handler = (event, context, callback) => {
+exports.handler = async (event, context, callback) => {
   // lambda authorizer function code
   var token = event.authorizationToken; // "allow" or "deny"
-  switch (token) {
-    case "allow":
-      callback(null, generatePolicy("user", "Allow", event.methodArn));
-      break;
-    case "deny":
-      callback(null, generatePolicy("user", "Deny", event.methodArn));
-      break;
-    case "unauthorized":
-      callback("Unauthorized"); // Return a 401 Unauthorized response
-      break;
-    default:
-      callback("Error: Invalid token"); // Return a 500 Invalid token response
+  console.log("Token: ", token);
+
+  // Validate the JWT token
+  try {
+    const payload = await jwtVerifier.verify(token);
+    console.log(JSON.stringify(payload));
+    callback(null, generatePolicy("user", "Allow", event.methodArn));
+  } catch (err) {
+    console.log("Error: ", err);
+    callback("Unauthorized"); // Return a 401 Unauthorized response
   }
+
+  // switch (token) {
+  //   case "allow":
+  //     callback(null, generatePolicy("user", "Allow", event.methodArn));
+  //     break;
+  //   case "deny":
+  //     callback(null, generatePolicy("user", "Deny", event.methodArn));
+  //     break;
+  //   case "unauthorized":
+  //     callback("Unauthorized"); // Return a 401 Unauthorized response
+  //     break;
+  //   default:
+  //     callback("Error: Invalid token"); // Return a 500 Invalid token response
+  // }
 };
