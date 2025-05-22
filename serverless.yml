@@ -26,7 +26,7 @@ plugins:
   - serverless-iam-roles-per-function
 
 functions:
-  authorizer:
+  authorizer: # lambda authorizer function
     handler: authorizer.handler
 
   createNote:
@@ -87,7 +87,9 @@ functions:
           method: get
           path: notes/
           #private: true
-          authorizer: authorizer
+          authorizer:
+            name: userpool_authorizer
+            arn: arn:aws:cognito-idp:us-east-1:897722670997:userpool/us-east-1_8U2KNApFS
     iamRoleStatements:
       - Effect: "Allow"
         Resource: !GetAtt notesTable.Arn
