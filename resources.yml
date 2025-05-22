@@ -30,3 +30,11 @@ cognitoUserPoolDomain:
   Properties:
     UserPoolId: !Ref cognitoUserPool
     Domain: snknotesdomain
+
+# Application ssm parameters
+userPoolIdParam:
+  Type: AWS::SSM::Parameter
+  Properties:
+    Name: /notes/dev/userPoolId
+    Type: String
+    Value: !GetAtt cognitoUserPool.Arn

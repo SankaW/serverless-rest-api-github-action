@@ -28,6 +28,9 @@ plugins:
 functions:
   authorizer: # lambda authorizer function
     handler: authorizer.handler
+    environment:
+      COGNITO_USER_POOL_ID: !Ref cognitoUserPool
+      COGNITO_WEB_CLIENT_ID: !Ref cognitoUserPoolWebClient
 
   createNote:
     handler: handler.createNote
@@ -89,7 +92,8 @@ functions:
           #private: true
           authorizer:
             name: userpool_authorizer
-            arn: arn:aws:cognito-idp:us-east-1:897722670997:userpool/us-east-1_8U2KNApFS
+            type: COGNITO_USER_POOLS
+            arn: !GetAtt cognitoUserPool.Arn # Using the logical name of the resource
     iamRoleStatements:
       - Effect: "Allow"
         Resource: !GetAtt notesTable.Arn

@@ -1,9 +1,11 @@
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
+const COGNITO_USER_POOL_ID = process.env.COGNITO_USER_POOL_ID;
+const COGNITO_WEB_CLIENT_ID = process.env.COGNITO_WEB_CLIENT_ID;
 
 const jwtVerifier = CognitoJwtVerifier.create({
-  userPoolId: "us-east-1_8U2KNApFS",
+  userPoolId: COGNITO_USER_POOL_ID,
   tokenUse: "id",
-  clientId: "2g2ds1dak4m2mmog75poj8hcbt",
+  clientId: COGNITO_WEB_CLIENT_ID,
 });
 
 const generatePolicy = (principleId, effect, resource) => {
