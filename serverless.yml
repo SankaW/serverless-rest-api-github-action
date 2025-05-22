@@ -97,15 +97,4 @@ functions:
 
 # CloudFormation resources
 resources:
-  Resources:
-    notesTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: notes
-        BillingMode: PAY_PER_REQUEST
-        KeySchema:
-          - AttributeName: notesId
-            KeyType: HASH
-        AttributeDefinitions:
-          - AttributeName: notesId
-            AttributeType: S
+  Resources: ${file(resources.yml)}
