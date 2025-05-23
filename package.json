@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "sls ": "sls"
+    "sls ": "sls",
+    "test": "echo \"No tests defined. Skipping.\""
   },
   "keywords": [],
   "author": "",
