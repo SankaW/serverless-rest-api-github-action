@@ -17,12 +17,23 @@ cognitoUserPool:
   Properties:
     UserPoolName: notes-user-pool
 
-# User Pool Web
+# User Pool Web client
 cognitoUserPoolWebClient:
   Type: AWS::Cognito::UserPoolClient
   Properties:
     ClientName: notes-web-client
     UserPoolId: !Ref cognitoUserPool
+    AllowedOAuthFlowsUserPoolClient: true
+    SupportedIdentityProviders:
+      - COGNITO
+    AllowedOAuthFlows:
+      - implicit
+    AllowedOAuthScopes:
+      - email
+      - phone
+      - openid
+    CallbackURLs:
+      - https://localhost:3000
 
 # User Pool domain
 cognitoUserPoolDomain:
