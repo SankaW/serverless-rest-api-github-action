@@ -2,7 +2,7 @@
 notesTable: # here giveing a logical name
   Type: AWS::DynamoDB::Table
   Properties:
-    TableName: notes
+    TableName: notes-${self:provider.stage}
     BillingMode: PAY_PER_REQUEST
     KeySchema:
       - AttributeName: notesId
@@ -15,7 +15,7 @@ notesTable: # here giveing a logical name
 cognitoUserPool:
   Type: AWS::Cognito::UserPool
   Properties:
-    UserPoolName: notes-user-pool
+    UserPoolName: notes-user-pool-${self:provider.stage}
 
 # User Pool Web client
 cognitoUserPoolWebClient:
@@ -40,4 +40,4 @@ cognitoUserPoolDomain:
   Type: AWS::Cognito::UserPoolDomain
   Properties:
     UserPoolId: !Ref cognitoUserPool
-    Domain: snknotesdomain
+    Domain: snknotesdomain-${self:provider.stage} # Replace with your desired domain name
