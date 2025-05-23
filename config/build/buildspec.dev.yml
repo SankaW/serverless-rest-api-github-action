@@ -6,8 +6,8 @@ phases:
     runtime-versions:
       nodejs: 20
     commands:
-      - echo Installing serverless CLI
-      - npm install -g serverless@2
+      # - echo Installing serverless CLI
+      # - npm install -g serverless@3
       - echo Installing npm dependencies of notes service
       - npm install
 
@@ -17,7 +17,7 @@ phases:
       - echo Running Tests
       - npm test
       - echo Packaging the service
-      - serverless package --package my-artifact --stage dev
+      - npx serverless package --package my-artifact --stage dev
 
 artifacts:
   files:
