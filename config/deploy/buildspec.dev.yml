@@ -15,7 +15,7 @@ phases:
     on-failure: ABORT
     commands:
       - echo Deploying resources
-      - npx serverless deploy--stage dev
+      - npx serverless deploy --stage dev
 
 artifacts:
   files:
