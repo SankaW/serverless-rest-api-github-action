@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "sls ": "sls",
     "test": "echo \"No tests defined. Skipping.\""
   },
   "keywords": [],
@@ -12,6 +11,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "jest": "^29.7.0",
     "serverless": "3.38",
     "serverless-iam-roles-per-function": "^3.2.0"
   },
