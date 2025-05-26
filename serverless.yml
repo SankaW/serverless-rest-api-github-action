@@ -23,6 +23,7 @@ provider:
     NOTES_TABLE_NAME: !Ref notesTable
 
 plugins:
+  - serverless-plugin-typescript
   - serverless-iam-roles-per-function
 
 functions:
