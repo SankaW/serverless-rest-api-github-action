@@ -1,26 +1,40 @@
-"use strict";
-const crypto = require("crypto");
-const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const client = new DynamoDBClient({ region: "us-east-1" });
-const {
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import crypto from "crypto";
+import {
+  DynamoDBClient,
+  DynamoDBClientConfig,
+} from "@aws-sdk/client-dynamodb";
+import {
   DynamoDBDocumentClient,
   PutCommand,
   UpdateCommand,
   DeleteCommand,
   GetCommand,
   ScanCommand,
-} = require("@aws-sdk/lib-dynamodb");
-const docClient = DynamoDBDocumentClient.from(client);
-const TABLE_NAME = process.env.NOTES_TABLE_NAME;
+} from "@aws-sdk/lib-dynamodb";
 
-module.exports.createNote = async (event) => {
-  let data = JSON.parse(event.body);
+// Setup DynamoDB client
+const client = new DynamoDBClient({ region: "us-east-1" } as DynamoDBClientConfig);
+const docClient = DynamoDBDocumentClient.from(client);
+
+// Environment variable
+const TABLE_NAME = process.env.NOTES_TABLE_NAME || "";
+
+interface NoteData {
+  title: string;
+  body: string;
+}
+
+export const createNote = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const data: NoteData = JSON.parse(event.body || "{}");
   try {
     await docClient.send(
       new PutCommand({
         TableName: TABLE_NAME,
         Item: {
-          notesId: crypto.randomUUID(),
+          notesId: `test-note-${Date.now()}`,//crypto.randomUUID(),
           title: data.title,
           body: data.body,
         },
@@ -31,7 +45,7 @@ module.exports.createNote = async (event) => {
       statusCode: 201,
       body: JSON.stringify("A new note is created"),
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       statusCode: 400,
       body: JSON.stringify(error.message),
@@ -39,16 +53,17 @@ module.exports.createNote = async (event) => {
   }
 };
 
-module.exports.updateNote = async (event) => {
-  let data = JSON.parse(event.body);
-  const noteId = event.pathParameters.id;
+export const updateNote = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const data: NoteData = JSON.parse(event.body || "{}");
+  const noteId = event.pathParameters?.id || "";
+
   try {
     await docClient.send(
       new UpdateCommand({
         TableName: TABLE_NAME,
-        Key: {
-          notesId: noteId,
-        },
+        Key: { notesId: noteId },
         ConditionExpression: "attribute_exists(notesId)",
         UpdateExpression: "set title = :t, body = :b",
         ExpressionAttributeValues: {
@@ -57,27 +72,27 @@ module.exports.updateNote = async (event) => {
         },
       })
     );
-  } catch (error) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify(`The note with id ${noteId} is updated`),
+    };
+  } catch (error: any) {
     return {
       statusCode: 400,
       body: JSON.stringify(error.message),
     };
   }
-  return {
-    statusCode: 200,
-    body: JSON.stringify(`The note with id ${noteId} is updated`),
-  };
 };
 
-module.exports.deleteNote = async (event) => {
-  const noteId = event.pathParameters.id;
+export const deleteNote = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const noteId = event.pathParameters?.id || "";
   try {
     await docClient.send(
       new DeleteCommand({
         TableName: TABLE_NAME,
-        Key: {
-          notesId: noteId,
-        },
+        Key: { notesId: noteId },
         ConditionExpression: "attribute_exists(notesId)",
       })
     );
@@ -85,7 +100,7 @@ module.exports.deleteNote = async (event) => {
       statusCode: 200,
       body: JSON.stringify(`The note with id ${noteId} is deleted`),
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       statusCode: 500,
       body: JSON.stringify(error.message),
@@ -93,29 +108,31 @@ module.exports.deleteNote = async (event) => {
   }
 };
 
-module.exports.getNoteById = async (event) => {
-  const noteId = event.pathParameters.id;
+export const getNoteById = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const noteId = event.pathParameters?.id || "";
   try {
     const data = await docClient.send(
       new GetCommand({
         TableName: TABLE_NAME,
-        Key: {
-          notesId: noteId,
-        },
+        Key: { notesId: noteId },
         ConditionExpression: "attribute_exists(notesId)",
       })
     );
+
     if (!data.Item) {
       return {
         statusCode: 404,
         body: JSON.stringify(`The note with id ${noteId} is not found`),
       };
     }
+
     return {
       statusCode: 200,
       body: JSON.stringify(data.Item),
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       statusCode: 500,
       body: JSON.stringify(error.message),
@@ -123,31 +140,30 @@ module.exports.getNoteById = async (event) => {
   }
 };
 
-module.exports.getAllNotes = async (event) => {
+export const getAllNotes = async (): Promise<APIGatewayProxyResult> => {
   try {
-    let params = {
+    const params = {
       TableName: TABLE_NAME,
       Limit: 2,
     };
 
-    let lastEvaluatedKey = undefined;
-    let allItems = [];
+    let lastEvaluatedKey: any = undefined;
+    let allItems: any[] = [];
 
     do {
       if (lastEvaluatedKey) {
-        params.ExclusiveStartKey = lastEvaluatedKey;
+        (params as any).ExclusiveStartKey = lastEvaluatedKey;
       }
       const data = await docClient.send(new ScanCommand(params));
       lastEvaluatedKey = data.LastEvaluatedKey;
-      console.log(`Items retrived: ${data.Items.length}`);
-      allItems = allItems.concat(data.Items);
+      allItems = allItems.concat(data.Items || []);
     } while (lastEvaluatedKey);
 
     return {
       statusCode: 200,
       body: JSON.stringify({ Items: allItems }),
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       statusCode: 500,
       body: JSON.stringify(error.message),
